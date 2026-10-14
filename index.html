@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elegibilidades · Promotora Algarrobos</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --azul:#123B5E;
+    --turquesa:#00A6A6;
+    --verde:#2E8B57;
+    --ambar:#F2A900;
+    --rojo:#D64545;
+    --gris:#F4F6F8;
+    --gris2:#E4E9EF;
+    --texto:#1B2733;
+    --texto2:#5A6B7B;
+    --blanco:#FFFFFF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',sans-serif;
+    background:var(--gris);
+    color:var(--texto);
+    line-height:1.5;
+    padding:24px;
+  }
+  .wrap{max-width:1500px;margin:0 auto}
+
+  /* HEADER */
+  header{
+    background:linear-gradient(135deg,var(--azul) 0%,#1B5A85 55%,var(--turquesa) 100%);
+    color:#fff;
+    border-radius:18px;
+    padding:28px 32px;
+    margin-bottom:24px;
+    box-shadow:0 10px 30px rgba(18,59,94,.25);
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:'';position:absolute;right:-60px;top:-60px;
+    width:280px;height:280px;border-radius:50%;
+    background:rgba(255,255,255,.07);
+  }
+  header::before{
+    content:'';position:absolute;right:80px;bottom:-90px;
+    width:180px;height:180px;border-radius:50%;
+    background:rgba(255,255,255,.05);
+  }
+  header h1{font-size:26px;font-weight:700;letter-spacing:-.4px;position:relative;z-index:1}
+  header p{font-size:14px;opacity:.85;margin-top:6px;position:relative;z-index:1}
+  .badge{
+    display:inline-block;background:rgba(255,255,255,.18);
+    border:1px solid rgba(255,255,255,.3);
+    padding:4px 12px;border-radius:20px;font-size:12px;
+    margin-top:12px;position:relative;z-index:1;backdrop-filter:blur(4px);
+  }
+
+  /* KPI CARDS */
+  .kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+    gap:16px;margin-bottom:24px;
+  }
+  .kpi{
+    background:var(--blanco);
+    border-radius:14px;
+    padding:18px 20px;
+    box-shadow:0 2px 10px rgba(18,59,94,.07);
+    border-left:5px solid var(--turquesa);
+    transition:transform .18s, box-shadow .18s;
+    position:relative;
+    overflow:hidden;
+  }
+  .kpi:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(18,59,94,.14)}
+  .kpi .label{font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--texto2);font-weight:600}
+  .kpi .value{font-size:32px;font-weight:800;margin-top:6px;color:var(--azul);line-height:1.1}
+  .kpi .sub{font-size:12px;color:var(--texto2);margin-top:4px}
+  .kpi.verde{border-left-color:var(--verde)}
+  .kpi.verde .value{color:var(--verde)}
+  .kpi.ambar{border-left-color:var(--ambar)}
+  .kpi.ambar .value{color:#C98A00}
+  .kpi.rojo{border-left-color:var(--rojo)}
+  .kpi.rojo .value{color:var(--rojo)}
+  .kpi.azul{border-left-color:var(--azul)}
+
+  /* SECTIONS */
+  .section-title{
+    font-size:15px;font-weight:700;color:var(--azul);
+    text-transform:uppercase;letter-spacing:1px;
+    margin:32px 0 14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .section-title::before{
+    content:'';width:5px;height:20px;border-radius:3px;
+    background:linear-gradient(180deg,var(--turquesa),var(--azul));
+  }
+
+  /* CHART CARDS */
+  .grid{display:grid;gap:20px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+  .card{
+    background:var(--blanco);
+    border-radius:16px;
+    padding:20px 22px;
+    box-shadow:0 2px 10px rgba(18,59,94,.07);
+  }
+  .card h3{
+    font-size:14px;font-weight:700;color:var(--azul);
+    margin-bottom:4px;
+  }
+  .card .desc{font-size:12px;color:var(--texto2);margin-bottom:14px}
+  .chart-box{position:relative;height:300px}
+  .chart-box.tall{height:360px}
+
+  /* FUNNEL CUSTOM */
+  .funnel{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+  .funnel-row{display:flex;align-items:center;gap:14px}
+  .funnel-label{width:130px;font-size:12.5px;font-weight:600;color:var(--texto);text-align:right;flex-shrink:0}
+  .funnel-bar-wrap{flex:1;background:var(--gris);border-radius:10px;height:44px;position:relative;overflow:hidden}
+  .funnel-bar{
+    height:100%;border-radius:10px;
+    display:flex;align-items:center;justify-content:flex-end;
+    padding-right:14px;color:#fff;font-weight:700;font-size:13px;
+    transition:width 1s cubic-bezier(.2,.8,.2,1);
+    min-width:44px;
+  }
+  .funnel-conv{width:70px;font-size:12px;color:var(--texto2);font-weight:600;flex-shrink:0}
+
+  /* TABLE */
+  .table-controls{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .table-controls input,.table-controls select{
+    padding:9px 14px;border:1px solid var(--gris2);border-radius:10px;
+    font-size:13px;font-family:inherit;color:var(--texto);
+    background:var(--blanco);outline:none;transition:border .15s;
+  }
+  .table-controls input:focus,.table-controls select:focus{border-color:var(--turquesa)}
+  .table-controls input{flex:1;min-width:220px}
+  .table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--gris2);max-height:520px;overflow-y:auto}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  thead{position:sticky;top:0;z-index:2}
+  th{
+    background:var(--azul);color:#fff;text-align:left;
+    padding:11px 12px;font-weight:600;font-size:11.5px;
+    text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;
+  }
+  td{padding:9px 12px;border-bottom:1px solid var(--gris2);vertical-align:top}
+  tbody tr:hover{background:#F0F7FA}
+  tbody tr:last-child td{border-bottom:none}
+  .pill{
+    display:inline-block;padding:2px 9px;border-radius:20px;
+    font-size:10.5px;font-weight:700;white-space:nowrap;margin:1px 2px 1px 0;
+  }
+  .p-cita{background:#E3F2FD;color:#1565C0}
+  .p-visita{background:#E8F5E9;color:#2E7D32}
+  .p-inscrito{background:#E0F2F1;color:#00695C}
+  .p-elegible{background:#C8E6C9;color:#1B5E20;border:1px solid #2E8B57}
+  .p-observado{background:#FFF3E0;color:#E65100}
+  .p-nocontesto{background:#FFEBEE;color:#C62828}
+  .p-contesto{background:#EDE7F6;color:#4527A0}
+  .p-provincia{background:#F3E5F5;color:#6A1B9A}
+  .p-otro{background:#ECEFF1;color:#455A64}
+
+  /* INSIGHTS */
+  .insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+  .insight{
+    background:var(--blanco);border-radius:14px;padding:18px 20px;
+    box-shadow:0 2px 10px rgba(18,59,94,.07);
+    border-top:4px solid var(--turquesa);
+  }
+  .insight.warn{border-top-color:var(--ambar)}
+  .insight.bad{border-top-color:var(--rojo)}
+  .insight.good{border-top-color:var(--verde)}
+  .insight h4{font-size:13px;font-weight:700;color:var(--azul);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+  .insight p{font-size:12.5px;color:var(--texto2);line-height:1.55}
+  .insight .num{font-size:22px;font-weight:800;color:var(--azul);margin-bottom:4px}
+
+  footer{text-align:center;font-size:11.5px;color:var(--texto2);margin-top:34px;padding:18px}
+
+  @media(max-width:640px){
+    body{padding:12px}
+    header{padding:20px}
+    header h1{font-size:20px}
+    .kpi .value{font-size:26px}
+    .funnel-label{width:90px;font-size:11px}
+    .funnel-conv{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Elegibilidades · Promotora Algarrobos</h1>
+    <p>Proyecto Villa Ensueño · Sistema Integral de Procesos de Techo Propio — Fondo MiVivienda</p>
+    <span class="badge">📊 Dashboard de gestión comercial · Corte 13/10/2026</span>
+  </header>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <!-- EMBUDO -->
+  <div class="section-title">Embudo de elegibilidad</div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Conversión del proceso</h3>
+      <p class="desc">Del lead inicial hasta la aprobación del bono</p>
+      <div class="funnel" id="funnel"></div>
+    </div>
+    <div class="card">
+      <h3>Estado general del proceso</h3>
+      <p class="desc">Cantidad de clientes por hito alcanzado</p>
+      <div class="chart-box"><canvas id="chartEmbudo"></canvas></div>
+    </div>
+  </div>
+
+  <!-- MANZANAS -->
+  <div class="section-title">Análisis por manzana</div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Leads vs Inscritos por manzana</h3>
+      <p class="desc">Volumen total y clientes ya registrados en el fondo</p>
+      <div class="chart-box tall"><canvas id="chartMzn"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Tasa de inscripción por manzana</h3>
+      <p class="desc">Porcentaje de leads que llegaron a inscribirse</p>
+      <div class="chart-box tall"><canvas id="chartTasa"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:20px">
+    <div class="card">
+      <h3>Estado por manzana</h3>
+      <p class="desc">Distribución de los principales estados en cada manzana</p>
+      <div class="chart-box tall"><canvas id="chartStack"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Distribución de estados del CRM</h3>
+      <p class="desc">Frecuencia de cada estado (selección múltiple)</p>
+      <div class="chart-box tall"><canvas id="chartEstados"></canvas></div>
+    </div>
+  </div>
+
+  <!-- EQUIPO -->
+  <div class="section-title">Gestión del equipo</div>
+  <div class="grid g3">
+    <div class="card">
+      <h3>Asesor que atendió</h3>
+      <p class="desc">Distribución de la carga de atención</p>
+      <div class="chart-box"><canvas id="chartAtendio"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Quién firmó el formato</h3>
+      <p class="desc">Responsable de la firma del formato del sistema</p>
+      <div class="chart-box"><canvas id="chartFirmo"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Carta informativa</h3>
+      <p class="desc">Estado de entrega del documento al cliente</p>
+      <div class="chart-box"><canvas id="chartCarta"></canvas></div>
+    </div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="section-title">Hallazgos clave</div>
+  <div class="insights" id="insights"></div>
+
+  <!-- TABLA -->
+  <div class="section-title">Detalle de clientes</div>
+  <div class="card">
+    <div class="table-controls">
+      <input type="text" id="search" placeholder="🔍 Buscar por nombre, DNI o manzana...">
+      <select id="filterMzn">
+        <option value="">Todas las manzanas</option>
+        <option>A1</option><option>B1</option><option>C1</option><option>D1</option><option>K1</option>
+      </select>
+      <select id="filterEstado">
+        <option value="">Todos los estados</option>
+        <option>Elegible</option>
+        <option>Inscrito</option>
+        <option>Cita agendada</option>
+        <option>Visita realizada</option>
+        <option>Observado</option>
+        <option>No contesto</option>
+        <option>Contestó</option>
+        <option>Trámite Provincia</option>
+      </select>
+      <select id="filterAtendio">
+        <option value="">Todos los asesores</option>
+        <option>Giancarlo</option><option>Angie</option><option>Mirelly</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>N°</th><th>Mzn</th><th>Casa</th><th>Nombre</th>
+            <th>Atendió</th><th>Firmó</th><th>Estado</th><th>Próxima acción</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <p style="font-size:11.5px;color:var(--texto2);margin-top:10px" id="tableCount"></p>
+  </div>
+
+  <footer>
+    Dashboard generado a partir del CRM PA - Elegibilidad 20261013 · Fuente: hoja «CRM» del Excel<br>
+    Promotora Algarrobos · Proyecto Villa Ensueño
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   DATOS DEL CRM  (hoja "CRM")
+   Formato: [N, Mzn, Casa, Nombre, Atendió, Firmó, Estado, Próxima Acción]
+   ============================================================ */
+const raw = [
+[1,"A1",1,"LESLIE GUADALUPE TAPIA LACHOS","Giancarlo","Kriss","Cita agendada, Visita realizada, Inscrito","Volver a llamar"],
+[2,"A1",3,"EVELYN ROJAS NORABUENA","","","Cita agendada, Visita realizada","Inscripción de su hermana en Lima"],
+[3,"B1",1,"JOSE DAVID CUADROS GUEVARA","","","Contestó, Trámite Provincia","Confirmar sobre la carta poder"],
+[4,"B1",2,"CESAR AUGUSTO MONTES GARBOZA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Confirmar cita"],
+[5,"B1",3,"JUANA NOELINA CAMPOS FLORES","Angie","Kriss","Cita agendada, Visita realizada, Inscrito","Confirmar cambio de titularidad"],
+[6,"B1",4,"MARIA VIOLETA LINGAN LOPEZ","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Llamar para programar cita"],
+[7,"B1",5,"July Valeria Ruiz Paisy","Angie","Mirelly","Cita agendada, Visita realizada, Inscrito","Espera de resultado del fondo"],
+[8,"B1",6,"Ysidro Campos Peña","Angie","Kriss","Cita agendada, Visita realizada, Inscrito","Firma Carta Informativa"],
+[9,"B1",7,"RONALD NICOLAS ARISTA FLORES","","","Contestó, No contesto","Volver a llamar"],
+[10,"B1",8,"MARIA LUZ MANAYALLE SANTA CRUZ","","","Cita agendada","Llamar al cliente para confirmar cita"],
+[11,"B1",9,"DEISY NOEMI OLIVA HERNANDEZ","Angie","Kriss","Cita agendada, Visita realizada, Inscrito","Llamar para validar la hora"],
+[12,"B1",10,"MARIA AGUSTINA GOMEZ QUIROZ","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Espera respuesta del fondo"],
+[13,"B1",11,"GILBERTO VENTURA HURTADO","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Volver a llamar"],
+[14,"B1",12,"Nilson Angello Fernandez Barboza","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Entregar Carta Informativa al cliente"],
+[15,"B1",13,"Jans Alex Fernandez Gastelo","","","Contestó, Observado","Brindar información en oficina al cliente"],
+[16,"B1",14,"ANA FLAVIA ARRIOLA BERNUY","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Entregar Carta Informativa al cliente"],
+[17,"B1",15,"YESSENIA MARIBEL CORTEZ PRADO DE AMAYO","Giancarlo","","Contestó, Observado","Enviar fotos del proyecto"],
+[18,"B1",16,"BALIDIA RODRIGUEZ SILVA","Giancarlo","","No contesto, Cita agendada","Volver a llamar"],
+[19,"B1",17,"TANIA ANTONIETA PEREZ POPUCHE","Mirelly","Mirelly","Cita agendada, Visita realizada, Inscrito, Elegible","Espera de resultado del fondo"],
+[20,"B1",18,"MARLENI CHAQUILA FLORES","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Entregar Carta Informativa al cliente"],
+[21,"B1",19,"MARIA ANTONIETA PUPUCHE DE PEREZ","Angie","Kriss","Cita agendada, Visita realizada, Inscrito","Volver a llamar"],
+[22,"B1",20,"CEYLI HERNANDEZ CORREA","Giancarlo","Kriss","Cita agendada, Visita realizada, Inscrito","Entregar Carta Informativa al cliente"],
+[23,"B1",21,"MARIA LUZ ERLYTA CORDOVA ADRIANZEN","Mirelly","Mirelly","Cita agendada, Visita realizada, Inscrito","Espera de resultado del fondo"],
+[24,"B1",22,"DAVID ELIAS GRANDA LUNA","","","Contestó, Observado, Inscrito","Monitorear elegibilidad"],
+[25,"B1",23,"MARIA HERMELINDA MIMBELA TANTACHUCO","","","Contestó, Observado","Consultar caso en extranjero"],
+[26,"C1",1,"FLOR MARIA MIJA GUTIERREZ","","","Contestó, Observado, Cita agendada","Llamar para saber estado del dni"],
+[27,"C1",2,"JORGE BERNARDO HUAMAN RUIZ","Angie","Kriss","Cita agendada, Visita realizada, Inscrito","Espera de resultado del fondo"],
+[28,"C1",3,"CESAR DAVID DURAND ORDOÑEZ","Giancarlo","","Cita agendada","Inscribir cliente"],
+[29,"C1",4,"MERCEDES DIAZ PAREDES","Giancarlo","","Contestó, Observado, Visita realizada","Llamar a cliente"],
+[30,"C1",5,"MIRIAM CRISTINA CORTEZ FERNANDEZ","Giancarlo","","No contesto","Ver la forma de contactar a cliente"],
+[31,"C1",6,"MAYRA KAROLEYCI MONTENEGRO GOMEZ","Giancarlo","","Cita agendada, Visita realizada, Inscrito","Registrar inscripción"],
+[32,"C1",7,"BEATRIZ CESPEDES CAJO","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Esperar respuesta del fondo"],
+[33,"C1",8,"GLORET MERESI BARRANTES JULCA","Giancarlo","","Cita agendada, Visita realizada, Observado","Ver su caso para apoyarla"],
+[34,"C1",9,"MARIA JESUS GUEVARA GUEVARA","Giancarlo","","Contestó, Observado","Volver a llamar"],
+[35,"C1",10,"GIANCARLO JAVIER CUADRA SANCHEZ","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Espera de resultado del fondo"],
+[36,"C1",11,"ISABEL GUEVARA VALLEJOS","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Volver a llamar para fijar cita"],
+[37,"C1",12,"ROSARIO DEL PILAR SORIANO MONTALVO","Giancarlo","","No contesto, Observado","Ver la forma de poder contactarla"],
+[38,"C1",13,"LUDI SEMINARIO JIBAJA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Llamar para confirmar cita"],
+[39,"C1",14,"JOSE WILDER PEREZ VALDEZ","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Llamar a cliente"],
+[40,"C1",15,"LUCI TORRES GAMARRA","Angie","Rogger","Cita agendada, Inscrito","Llamar cliente para darle información"],
+[41,"C1",16,"MAXIMO TEQUEN CHAVEZ","Angie","Mirelly","Cita agendada, Visita realizada, Inscrito","Espera de resultado del fondo"],
+[42,"C1",17,"IRMA RAMIREZ CARDOZO","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Llamar a cliente"],
+[43,"C1",18,"WILSON PIEDRA CARRASCO","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Entregar Carta Informativa al cliente"],
+[44,"C1",19,"ANGIE JACKELINE AVELLANEDA SERQUEN","","","No contesto","Volver a llamar"],
+[45,"C1",20,"ROSA GRANDEZ MESTANZA","Giancarlo","","Contestó, Trámite Provincia","Confirmar si llegó hacer la inscripción"],
+[46,"C1",21,"LIBERTAD SANCHEZ RIOJA","Giancarlo","Kriss","Cita agendada, Visita realizada, Inscrito",""],
+[47,"C1",22,"ANA MARIA RAMIREZ BRAVO","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[48,"C1",23,"ALBERTO SALVADOR ARRIOLA VALLEJOS","Giancarlo","","Observado","Verificar caso de carga familiar"],
+[49,"C1",24,"ELIZABETH ARBILDO ORACIO","Mirelly","Mirelly","Cita agendada, Visita realizada, Inscrito","Espera de resultado del fondo"],
+[50,"C1",25,"SYRA SILVIA EMILIA GASTELO PUICON","Giancarlo","","No contesto","Volver a llamar"],
+[51,"C1",26,"JOHN HARLAN INCIO HUAMAN","Giancarlo","","No contesto","Volver a llamar"],
+[52,"C1",27,"DIANA MELISSA LUZ NILA CAMPOS UBILLUS","Giancarlo","","Contestó, Observado, Cita agendada",""],
+[53,"C1",28,"Shirly Milagros Rivadeneira García","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[54,"C1",29,"Cyntia Marcela Campomanes Buendia","","","",""],
+[55,"C1",30,"JESUS ALBERTO ARON CAMPOMANES BUENDIA","","","",""],
+[56,"C1",31,"ROBINSON MANUEL MONTENEGRO GARCIA","Angie","Kriss","Cita agendada, Visita realizada, Inscrito, Elegible","Espera de resultado del fondo"],
+[57,"C1",32,"LUIS MANUEL ALLENDE CHERO","Angie","Mirelly","Visita realizada, Inscrito","Espera de resultado del fondo"],
+[58,"C1",33,"LUSBI YESSENIA SANTISTEBAN SANDOVAL","Angie","Mirelly","Cita agendada, Visita realizada, Inscrito","Espera de resultado del fondo"],
+[59,"C1",34,"MOISES CRUZ CARRASCO","Giancarlo","","Contestó, Trámite Provincia","Volver a llamar al cliente"],
+[60,"C1",35,"GISELA SABINA MERA IDROGO","Giancarlo","","No contesto, Observado","Hacer seguimiento al cliente"],
+[61,"C1",36,"FIORELA MINAYA TICONA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Firma de Gerencia"],
+[62,"C1",37,"ROSITA MORI BECERRA","Giancarlo","MIrelly","Cita agendada, Visita realizada, Inscrito",""],
+[63,"C1",38,"ALBERTO MIGUEL ARRIOLA DEJO","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[64,"C1",39,"LADY KAROL CORTEZ PRADO","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Confirmar cita"],
+[65,"C1",40,"JARIB PATRICIA VASQUEZ SANDOVAL","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Espera de resultado del fondo"],
+[66,"C1",41,"DIANA JAQUELINE MALCA CHUNGA","Giancarlo","","Contestó, Observado","Volver a llamar"],
+[67,"C1",42,"ESMILDA VIDARTE VIDARTE","","","Contestó, Observado","Volver a llamar"],
+[68,"C1",43,"AMELIA GARCIA NAIRA","Giancarlo","Rogger","Cita agendada, Visita realizada, Inscrito",""],
+[69,"C1",44,"JUAN ANTONIO DELGADO RIVERA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[70,"C1",45,"GLADYS LLAGUENTO SEGUNDO","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[71,"C1",46,"ARJHAN COSTILLA PEREZ","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[72,"C1",47,"Eswin Noel Perez Perez","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Esperar resultado del fondo"],
+[73,"C1",48,"JUAN ANTONIO CESPEDES FERNANDEZ","Giancarlo","","No contesto","Volver a llamar"],
+[74,"C1",49,"VIVIAN ELIZABETH FLORES VILCHEZ","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Entregar Carta Informativa al cliente"],
+[75,"C1",50,"ELIZABETH DE LOS ANGELES SANCHEZ LLALLE","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Volver a llamar"],
+[76,"C1",51,"MARTHA REYES MACALOPU","Angie","Kriss","Cita agendada, Visita realizada, Inscrito",""],
+[77,"D1",1,"EUGENIA SILVA VASQUEZ","","","Observado",""],
+[78,"D1",2,"IRIS CLAUDIA CABRERA RIVERA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Volver a llamar"],
+[79,"D1",3,"MARTHA CECILIA RODRIGUEZ SALAZAR","Angie","Kriss","Cita agendada, Visita realizada, Inscrito, Elegible","Espera de resultado del fondo"],
+[80,"D1",4,"MARIA GENOVEVA SEGURA TAPIA","Mirelly","Mirelly","Cita agendada, Visita realizada, Inscrito, Elegible","Espera de resultado del fondo"],
+[81,"D1",5,"ELVIS ANCAJIMA CAMPOS","","","No contesto","Volver a llamar"],
+[82,"D1",6,"PEDRO ABEL SALAZAR VALLEJOS","Giancarlo","","Cita agendada, Visita realizada, Inscrito",""],
+[83,"D1",9,"Oscar Mauricio Soto Ventura","Angie","Kriss","Cita agendada, Visita realizada, Inscrito",""],
+[84,"D1",10,"DALILA ROJAS ALCANTARA","Giancarlo","","Contestó, Trámite Provincia","Validar que hizo la inscripción"],
+[85,"D1",11,"KARINA DEL PILAR VILLARREAL COTRINA","","","No contesto","Volver a llamar"],
+[86,"D1",12,"MARICIELO MARISOL MARTINEZ LOPEZ","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Volver a llamar"],
+[87,"D1",13,"ALEXA ANTONELLA MORENO VARONA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[88,"D1",14,"ANGELA KARINA CHINGAY GUEVARA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Esperar resultado de Elegibilidad"],
+[89,"D1",15,"Kevin Carranza Segovia","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[90,"D1",16,"FRANCISCO ISMAEL RODRIGUEZ SOUQUON","Giancarlo","","Observado",""],
+[91,"D1",17,"JUAN FERNANDO RODRIGUEZ MEDINA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[92,"D1",19,"LEONARDO MARTIN LLERENA BEDOYA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Entregar carta informativa"],
+[93,"D1",20,"GABRIELA CHUCAS BERNILLA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Volver a llamar"],
+[94,"D1",21,"VICTOR HUGO BAZÁN TOCTO","Mirelly","Mirelly","Cita agendada, Visita realizada, Inscrito","Espera de resultado del fondo"],
+[95,"D1",22,"Rocio Flores Paucar","Giancarlo","","Contestó, Observado","Volver a llamar"],
+[96,"D1",23,"MESIAS CARRASCO NUÑEZ","Giancarlo","","Contestó, Observado","Volver a llamar"],
+[97,"D1",24,"MARIA DEL CARMEN SANDOVAL TORRES","","","Contestó, Observado","Volver a llamar"],
+[98,"D1",25,"JOANNA DENISE BRAVO SAUCEDO","Mirelly","Mirelly","Cita agendada, Visita realizada, No califica, Inscrito","Espera de resultado del fondo"],
+[99,"D1",26,"Elver Jose Barboza Arevalo","Angie","Kriss","Cita agendada, Visita realizada, Inscrito",""],
+[100,"D1",27,"OLGA BEATRIZ YARLEQUE ALCEDO","","","Contestó, Observado, Cita agendada","Volver a llamar"],
+[101,"D1",28,"MATHIAS RAMOS MAYURI","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[102,"D1",29,"VICTOR ALEXANDER RAMOS ORTIZ","Angie","Mirelly","Cita agendada, Visita realizada, Inscrito","Espera de resultado del fondo"],
+[103,"D1",30,"NORA ARACELI HUAMAN BRAVO","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[104,"D1",31,"LUISA MITZY LIZETT MONTERO CASTILLO","Giancarlo","","Cita agendada",""],
+[105,"K1",1,"DIEGO DANELLI GIRALDO CORONEL","","","Visita realizada, Observado",""],
+[106,"K1",2,"MARTHA ALICIA HERNANDEZ GAVIDIA","","","No contesto","Volver a llamar"],
+[107,"K1",3,"MARCOS RODRIGO ZAPATA SILVA","Mirelly","Mirelly","Cita agendada, Visita realizada, Inscrito, Elegible","Espera de resultado del fondo"],
+[108,"K1",4,"CONSUELO BALLONA JIMENEZ","","","No contesto, Motivo","Volver a llamar"],
+[109,"K1",5,"ELDA ANAHY ALARCON VASQUEZ","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[110,"K1",6,"EDSON BARNEY POZADA CHAVARRY","","","No contesto, Motivo","Volver a llamar"],
+[111,"K1",7,"Bertha Ysabel Bustamante Bautista","","","Contestó, Observado",""],
+[112,"K1",8,"HUGO ALBERTO CABANILLAS POEMAPE","Angie","Mirelly","Cita agendada, Visita realizada, Inscrito","Espera de resultado del fondo"],
+[113,"K1",9,"MILTON CESAR FUENTES CHIRINOS","Angie","Kriss","Visita realizada, Inscrito","Espera de resultado del fondo"],
+[114,"K1",10,"WILTON TENORIO VERA","Angie","Kriss","Cita agendada, Visita realizada, Inscrito","Espera de resultado del fondo"],
+[115,"K1",11,"JORGE LUIS MONDRAGON LEIVA","Mirelly","Mirelly","Cita agendada, Visita realizada, Inscrito, Elegible","Espera de resultado del fondo"],
+[116,"K1",12,"ENMA SOLEDAD SANCHEZ YUCRA","Giancarlo","","Contestó, Trámite Provincia","Esperar respuesta de cita"],
+[117,"K1",13,"FERNANDO DANNY SANCHEZ YUCRA","","","Contestó, Trámite Provincia",""],
+[118,"K1",14,"SULMA MAGALI BAZAN AREVALO","","","No contesto","Llamarla para ver el caso"],
+[119,"K1",15,"EDWIN FRANK BUNY LLAMO","Giancarlo","","Cita agendada, Visita realizada, Observado",""],
+[120,"K1",16,"DANIEL MONTALVO RAMOS","","","No contesto, Motivo",""],
+[121,"K1",17,"SHEYLA RUTH PARKER MERMAO","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[122,"K1",18,"DALLMER SALAZAR GARCIA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Espera de resultado del fondo"],
+[123,"K1",19,"CARLOS ENRIQUE JARA MONTOYA","","","Observado, Inscrito","Consultar a legal sobre este caso"],
+[124,"K1",20,"PEDRO JOSE GARCIA RECOBA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[125,"K1",21,"NELLI MONTALVO RODRIGUEZ","Giancarlo","","Cita agendada",""],
+[126,"K1",22,"MARCO ANTONIO RIMARACHIN SILVA","Giancarlo","","Cita agendada",""],
+[127,"K1",23,"JOSE ANTONIO RIMARACHIN IRIGOIN","Giancarlo","","Cita agendada",""],
+[128,"K1",24,"BETTY ANAMELVA JARA ESPINOZA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Entregar Carta Informativa al cliente"],
+[129,"K1",25,"APOLONIA ROQUE MANAYAY","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[130,"K1",26,"MARIA YSABEL CORNEJO ZULUETA","Giancarlo","","No contesto","Volver a llamar"],
+[131,"K1",27,"FLORENCIO RAMOS CUEVA","","","No contesto, Motivo","Volver a llamar"],
+[132,"K1",28,"PATRICIA MERCEDES PACHECO LAMADRID","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[133,"K1",29,"SANDY JAMELLY JIMENEZ ORTIZ","","","Cita agendada",""],
+[134,"K1",30,"MARIA ESTHER CELIS GUIVAR","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[135,"K1",31,"HECTOR CELIS GUIVAR","","","Contestó, Trámite Provincia, Observado",""],
+[136,"K1",32,"ESMERALDA FERNANDEZ FRIAS","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[137,"K1",33,"MARIA RENE FRIAS VDA DE FERNANDEZ","","","Contestó, Observado","Volver a llamar"],
+[138,"K1",34,"BRIGHAM JAFFIR FERNANDEZ MUÑOZ","","","Contestó, Observado","Volver a llamar"],
+[139,"K1",35,"DINELIA MAZA PARRILLA","","","No contesto","Volver a llamar"],
+[140,"K1",36,"KATIA CAROLINA CARLOS GOMEZ","Mirelly","Mirelly","Cita agendada, Visita realizada, Inscrito","Espera de resultado del fondo"],
+[141,"K1",37,"WILO ISMAEL PEREZ ARRIBASPLATA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Hacer seguimiento"],
+[142,"K1",38,"ERIKA ALVITES DIAZ","Giancarlo","","Cita agendada","Volver a llamar"],
+[143,"K1",39,"ARIADNA ALEXANDRA GUERRERO CORDOVA","","","No contesto, Motivo","Volver a llamar"],
+[144,"K1",40,"JOSE CARLOS CHUNGA SUAREZ","","","No contesto, Motivo","Volver a llamar"],
+[145,"K1",41,"JOSE WILDER FLORES DELGADO","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Llamarlo para confirmar cita"],
+[146,"K1",42,"NINA CARRANZA GUEVARA","","","Contestó, Observado, Inscrito","Enviar información de la dirección del fondo"],
+[147,"K1",43,"ALEJANDRO FLORES TAPIA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito","Esperar respuesta del fondo"],
+[148,"K1",44,"KELY GONZALES QUISPE","Angie","Kriss","Cita agendada, Visita realizada, Inscrito",""],
+[149,"K1",45,"JHON JEINER SUAREZ RAMIREZ","Angie","Kriss","Cita agendada, Visita realizada, Inscrito","Entregar Carta Informativa al cliente"],
+[150,"K1",46,"DIANA CAROLINA FIESTAS GUARNIZ","Angie","Kriss","Cita agendada, Visita realizada, Inscrito","Entregar Carta Informativa al cliente"],
+[151,"K1",47,"CARLOS ENRIQUE CUADRA SIVIRICHI","","","Contestó, Observado","Ver estado del dni del cliente"],
+[152,"K1",48,"MARLENY CHUCUDEN VASQUEZ","","","Contestó, Observado",""],
+[153,"K1",49,"MARILU DIAZ ARRASCUE","Giancarlo","","Cita agendada",""],
+[154,"K1",50,"CLAUDIA MELISSA ARAMBULO GAMARRA","Giancarlo","Mirelly","Cita agendada, Visita realizada, Inscrito",""],
+[155,"K1",51,"Ricardo Andre Reyes Montenegro","","","Visita realizada, Observado",""],
+[156,"K1",52,"VICTOR MIGUEL MONTOYA MALDONADO","Giancarlo","","No contesto","Volver a llamar"],
+[157,"K1",53,"GLORIA MONTOYA HEREDIA","","","No contesto","Volver a llamar"],
+[158,"K1",54,"ZANDRITA CARRANZA GUEVARA","","","Inscrito",""],
+[159,"K1",55,"JEAN MARCO JUAREZ BALLONA","Giancarlo","","No contesto","Volver a llamar"],
+[160,"K1",56,"GRACIELA NOEMI CHUMAN REYES","Giancarlo","Kriss","Cita agendada, Visita realizada, Inscrito",""],
+[161,"K1",57,"ELSIRA PATRICIA VASQUEZ GUEVARA","Giancarlo","","No contesto, Motivo","Volver a llamar"],
+[162,"K1",58,"MARLENY DEDICCIA ALVAREZ ARTEAGA","Giancarlo","","No contesto, Motivo",""]
+];
+
+/* ============================================================
+   CARGA DE DATOS
+   ============================================================ */
+const DATA = raw.map(r=>({
+  n:r[0], mzn:r[1], casa:r[2], nombre:r[3],
+  atendio:r[4], firmo:r[5], estado:r[6], accion:r[7],
+  estadosArr: r[6] ? r[6].split(",").map(s=>s.trim()).filter(Boolean) : []
+}));
+
+const TOTAL = DATA.length;
+
+const hasEstado = (row, txt) =>
+  row.estadosArr.some(e => e.toLowerCase().includes(txt.toLowerCase()));
+
+const countEstado = (txt) => DATA.filter(r=>hasEstado(r,txt)).length;
+
+/* KPIs */
+const kpiData = {
+  total: TOTAL,
+  citas: countEstado("Cita agendada"),
+  visitas: countEstado("Visita realizada"),
+  inscritos: countEstado("Inscrito"),
+  elegibles: countEstado("Elegible"),
+  observados: countEstado("Observado"),
+  nocontesto: DATA.filter(r=>r.estadosArr.some(e=>e.toLowerCase().startsWith("no contest"))).length,
+  contesto: countEstado("Contestó"),
+  provincia: countEstado("Trámite Provincia"),
+  nocalifica: countEstado("No califica")
+};
+kpiData.tasaInscripcion = (kpiData.inscritos / TOTAL * 100);
+kpiData.tasaElegibilidad = kpiData.inscritos ? (kpiData.elegibles / kpiData.inscritos * 100) : 0;
+
+const kpiGrid = document.getElementById('kpiGrid');
+const kpiCards = [
+  {label:"Total Leads", value:kpiData.total, sub:"100% de la base", cls:""},
+  {label:"Citas Agendadas", value:kpiData.citas, sub:(kpiData.citas/TOTAL*100).toFixed(1)+"% del total", cls:"azul"},
+  {label:"Visitas Realizadas", value:kpiData.visitas, sub:(kpiData.visitas/TOTAL*100).toFixed(1)+"% del total", cls:""},
+  {label:"Inscritos", value:kpiData.inscritos, sub:(kpiData.tasaInscripcion).toFixed(1)+"% del total", cls:"verde"},
+  {label:"Elegibles", value:kpiData.elegibles, sub:kpiData.tasaElegibilidad.toFixed(1)+"% de inscritos", cls:"verde"},
+  {label:"Observados", value:kpiData.observados, sub:(kpiData.observados/TOTAL*100).toFixed(1)+"% del total", cls:"ambar"},
+  {label:"No Contestó", value:kpiData.nocontesto, sub:(kpiData.nocontesto/TOTAL*100).toFixed(1)+"% del total", cls:"rojo"},
+  {label:"Trámite Provincia", value:kpiData.provincia, sub:"Elegibilidad fuera de sede", cls:"azul"}
+];
+kpiGrid.innerHTML = kpiCards.map(k=>`
+  <div class="kpi ${k.cls}">
+    <div class="label">${k.label}</div>
+    <div class="value">${k.value}</div>
+    <div class="sub">${k.sub}</div>
+  </div>
+`).join('');
+
+/* ============================================================
+   EMBUDO CUSTOM
+   ============================================================ */
+const funnelSteps = [
+  {label:"Leads", value:kpiData.total, color:"#123B5E"},
+  {label:"Cita agendada", value:kpiData.citas, color:"#1B6CA8"},
+  {label:"Visita realizada", value:kpiData.visitas, color:"#00A6A6"},
+  {label:"Inscrito", value:kpiData.inscritos, color:"#2E8B57"},
+  {label:"Elegible", value:kpiData.elegibles, color:"#7CB342"}
+];
+const maxF = kpiData.total;
+document.getElementById('funnel').innerHTML = funnelSteps.map((s,i)=>{
+  const pct = (s.value/maxF*100);
+  let conv = "";
+  if(i>0){
+    const prev = funnelSteps[i-1].value;
+    conv = prev ? (s.value/prev*100).toFixed(1)+"%" : "—";
+  } else conv = "—";
+  return `<div class="funnel-row">
+    <div class="funnel-label">${s.label}</div>
+    <div class="funnel-bar-wrap">
+      <div class="funnel-bar" style="width:${pct}%;background:${s.color}">${s.value}</div>
+    </div>
+    <div class="funnel-conv">${conv}</div>
+  </div>`;
+}).join('');
+
+/* ============================================================
+   MANZANAS
+   ============================================================ */
+const mznList = ["A1","B1","C1","D1","K1"];
+const mznStats = mznList.map(m=>{
+  const rows = DATA.filter(r=>r.mzn===m);
+  const leads = rows.length;
+  const citas = rows.filter(r=>hasEstado(r,"Cita agendada")).length;
+  const visitas = rows.filter(r=>hasEstado(r,"Visita realizada")).length;
+  const inscritos = rows.filter(r=>hasEstado(r,"Inscrito")).length;
+  const elegibles = rows.filter(r=>hasEstado(r,"Elegible")).length;
+  const observados = rows.filter(r=>hasEstado(r,"Observado")).length;
+  const nocontesto = rows.filter(r=>r.estadosArr.some(e=>e.toLowerCase().startsWith("no contest"))).length;
+  return {mzn:m, leads, citas, visitas, inscritos, elegibles, observados, nocontesto,
+          tasa: leads ? (inscritos/leads*100) : 0};
+});
+
+/* Chart global defaults */
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = "#5A6B7B";
+
+/* Embudo Chart.js */
+new Chart(document.getElementById('chartEmbudo'), {
+  type:'bar',
+  data:{
+    labels: funnelSteps.map(s=>s.label),
+    datasets:[{
+      label:'Clientes',
+      data: funnelSteps.map(s=>s.value),
+      backgroundColor: funnelSteps.map(s=>s.color),
+      borderRadius:8,
+      barThickness:36
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:c=>` ${c.parsed.x} clientes`}}
+    },
+    scales:{
+      x:{beginAtZero:true, grid:{color:"#EEF2F6"}, ticks:{color:"#5A6B7B"}},
+      y:{grid:{display:false}, ticks:{color:"#1B2733", font:{weight:'600'}}}
+    }
+  }
+});
+
+/* Leads vs Inscritos */
+new Chart(document.getElementById('chartMzn'), {
+  type:'bar',
+  data:{
+    labels: mznStats.map(s=>s.mzn),
+    datasets:[
+      {label:'Leads', data:mznStats.map(s=>s.leads), backgroundColor:'#123B5E', borderRadius:7, barPercentage:.7},
+      {label:'Inscritos', data:mznStats.map(s=>s.inscritos), backgroundColor:'#2E8B57', borderRadius:7, barPercentage:.7},
+      {label:'Elegibles', data:mznStats.map(s=>s.elegibles), backgroundColor:'#F2A900', borderRadius:7, barPercentage:.7}
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{position:'bottom', labels:{usePointStyle:true, pointStyle:'circle', padding:16}},
+      tooltip:{mode:'index', intersect:false}
+    },
+    scales:{
+      x:{grid:{display:false}},
+      y:{beginAtZero:true, grid:{color:"#EEF2F6"}}
+    }
+  }
+});
+
+/* Tasa de inscripción */
+new Chart(document.getElementById('chartTasa'), {
+  type:'bar',
+  data:{
+    labels: mznStats.map(s=>s.mzn),
+    datasets:[{
+      label:'Tasa de inscripción',
+      data: mznStats.map(s=>+s.tasa.toFixed(1)),
+      backgroundColor: mznStats.map(s=> s.tasa>=65?'#2E8B57': s.tasa>=50?'#00A6A6':'#D64545'),
+      borderRadius:8,
+      barPercentage:.6
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:c=>` ${c.parsed.y}% de inscripción`}}
+    },
+    scales:{
+      x:{grid:{display:false}},
+      y:{beginAtZero:true, max:100, grid:{color:"#EEF2F6"}, ticks:{callback:v=>v+"%"}}
+    }
+  }
+});
+
+/* Stacked Mzn */
+new Chart(document.getElementById('chartStack'), {
+  type:'bar',
+  data:{
+    labels: mznStats.map(s=>s.mzn),
+    datasets:[
+      {label:'Inscritos', data:mznStats.map(s=>s.inscritos), backgroundColor:'#2E8B57'},
+      {label:'Observados', data:mznStats.map(s=>s.observados), backgroundColor:'#F2A900'},
+      {label:'No contestó', data:mznStats.map(s=>s.nocontesto), backgroundColor:'#D64545'},
+      {label:'Elegibles', data:mznStats.map(s=>s.elegibles), backgroundColor:'#7CB342'}
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{position:'bottom', labels:{usePointStyle:true, pointStyle:'circle', padding:14}},
+      tooltip:{mode:'index', intersect:false}
+    },
+    scales:{
+      x:{stacked:true, grid:{display:false}},
+      y:{stacked:true, beginAtZero:true, grid:{color:"#EEF2F6"}}
+    }
+  }
+});
+
+/* Distribución de estados */
+const estadoCounts = [
+  {label:'Cita agendada', v:countEstado("Cita agendada"), c:'#1565C0'},
+  {label:'Visita realizada', v:countEstado("Visita realizada"), c:'#2E8B57'},
+  {label:'Inscrito', v:countEstado("Inscrito"), c:'#00695C'},
+  {label:'Observado', v:countEstado("Observado"), c:'#F2A900'},
+  {label:'Contestó', v:countEstado("Contestó"), c:'#4527A0'},
+  {label:'No contestó', v:kpiData.nocontesto, c:'#D64545'},
+  {label:'Trámite Provincia', v:countEstado("Trámite Provincia"), c:'#6A1B9A'},
+  {label:'Elegible', v:countEstado("Elegible"), c:'#7CB342'},
+  {label:'No califica', v:countEstado("No califica"), c:'#78909C'}
+].sort((a,b)=>b.v-a.v);
+
+new Chart(document.getElementById('chartEstados'), {
+  type:'bar',
+  data:{
+    labels: estadoCounts.map(e=>e.label),
+    datasets:[{
+      label:'Registros',
+      data: estadoCounts.map(e=>e.v),
+      backgroundColor: estadoCounts.map(e=>e.c),
+      borderRadius:7,
+      barThickness:22
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{beginAtZero:true, grid:{color:"#EEF2F6"}},
+      y:{grid:{display:false}, ticks:{font:{weight:'600'}}}
+    }
+  }
+});
+
+/* ============================================================
+   EQUIPO
+   ============================================================ */
+const atendioCounts = {};
+DATA.forEach(r=>{
+  const k = r.atendio || "Sin registro";
+  atendioCounts[k] = (atendioCounts[k]||0)+1;
+});
+const atendioLabels = Object.keys(atendioCounts).sort((a,b)=>atendioCounts[b]-atendioCounts[a]);
+const atendioColors = {"Giancarlo":"#123B5E","Angie":"#00A6A6","Mirelly":"#F2A900","Sin registro":"#B0BEC5"};
+
+new Chart(document.getElementById('chartAtendio'), {
+  type:'doughnut',
+  data:{
+    labels: atendioLabels,
+    datasets:[{
+      data: atendioLabels.map(l=>atendioCounts[l]),
+      backgroundColor: atendioLabels.map(l=>atendioColors[l]||"#78909C"),
+      borderWidth:3,
+      borderColor:"#fff"
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    cutout:'62%',
+    plugins:{
+      legend:{position:'bottom', labels:{usePointStyle:true, pointStyle:'circle', padding:14}},
+      tooltip:{callbacks:{label:c=>{
+        const tot = c.dataset.data.reduce((a,b)=>a+b,0);
+        return ` ${c.label}: ${c.parsed} (${(c.parsed/tot*100).toFixed(1)}%)`;
+      }}}
+    }
+  }
+});
+
+const firmoCounts = {};
+DATA.forEach(r=>{
+  const k = r.firmo || "Sin registro";
+  firmoCounts[k] = (firmoCounts[k]||0)+1;
+});
+const firmoLabels = Object.keys(firmoCounts).sort((a,b)=>firmoCounts[b]-firmoCounts[a]);
+const firmoColors = {"Mirelly":"#2E8B57","MIrelly":"#66BB6A","Kriss":"#00A6A6","Rogger":"#123B5E","Sin registro":"#B0BEC5"};
+
+new Chart(document.getElementById('chartFirmo'), {
+  type:'bar',
+  data:{
+    labels: firmoLabels,
+    datasets:[{
+      label:'Registros',
+      data: firmoLabels.map(l=>firmoCounts[l]),
+      backgroundColor: firmoLabels.map(l=>firmoColors[l]||"#78909C"),
+      borderRadius:8,
+      barPercentage:.6
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{display:false}},
+      y:{beginAtZero:true, grid:{color:"#EEF2F6"}}
+    }
+  }
+});
+
+/* Carta informativa — datos del análisis */
+const cartaData = [
+  {label:'Entregado', v:51, c:'#2E8B57'},
+  {label:'Pendiente firma', v:13, c:'#F2A900'},
+  {label:'No entregado', v:10, c:'#D64545'},
+  {label:'No tiene', v:11, c:'#00A6A6'},
+  {label:'Sin registro', v:77, c:'#B0BEC5'}
+];
+new Chart(document.getElementById('chartCarta'), {
+  type:'doughnut',
+  data:{
+    labels: cartaData.map(c=>c.label),
+    datasets:[{
+      data: cartaData.map(c=>c.v),
+      backgroundColor: cartaData.map(c=>c.c),
+      borderWidth:3,
+      borderColor:"#fff"
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    cutout:'58%',
+    plugins:{
+      legend:{position:'bottom', labels:{usePointStyle:true, pointStyle:'circle', padding:12, font:{size:11}}},
+      tooltip:{callbacks:{label:c=>{
+        const tot = c.dataset.data.reduce((a,b)=>a+b,0);
+        return ` ${c.label}: ${c.parsed} (${(c.parsed/tot*100).toFixed(1)}%)`;
+      }}}
+    }
+  }
+});
+
+/* ============================================================
+   INSIGHTS
+   ============================================================ */
+const mejorMzn = [...mznStats].sort((a,b)=>b.tasa-a.tasa)[0];
+const peorMzn = [...mznStats].sort((a,b)=>a.tasa-b.tasa)[0];
+const totalCitas = kpiData.citas;
+const totalVisitas = kpiData.visitas;
+const totalInscritos = kpiData.inscritos;
+const convCitaVisita = totalCitas ? (totalVisitas/totalCitas*100).toFixed(1) : 0;
+const convVisitaInsc = totalVisitas ? (totalInscritos/totalVisitas*100).toFixed(1) : 0;
+const sinFirmo = DATA.filter(r=>!r.firmo).length;
+
+document.getElementById('insights').innerHTML = `
+  <div class="insight good">
+    <h4>✅ Manzana más eficiente</h4>
+    <div class="num">${mejorMzn.mzn} · ${mejorMzn.tasa.toFixed(1)}%</div>
+    <p>${mejorMzn.inscritos} inscritos sobre ${mejorMzn.leads} leads. Es el mejor desempeño del proyecto.</p>
+  </div>
+  <div class="insight bad">
+    <h4>⚠️ Manzana crítica</h4>
+    <div class="num">${peorMzn.mzn} · ${peorMzn.tasa.toFixed(1)}%</div>
+    <p>${peorMzn.nocontesto} clientes no contestaron y ${peorMzn.observados} están observados. Requiere refuerzo de seguimiento telefónico.</p>
+  </div>
+  <div class="insight">
+    <h4>📈 Conversión operativa</h4>
+    <div class="num">${convCitaVisita}% · ${convVisitaInsc}%</div>
+    <p>De las citas agendadas, ${convCitaVisita}% llegan a visita. De las visitas, ${convVisitaInsc}% se inscriben. El proceso presencial funciona bien.</p>
+  </div>
+  <div class="insight warn">
+    <h4>📄 Documentación pendiente</h4>
+    <div class="num">${sinFirmo} sin firmante</div>
+    <p>Hay ${sinFirmo} registros sin responsable de firma del formato. Además, 77 registros no tienen estado de carta informativa.</p>
+  </div>
+  <div class="insight">
+    <h4>🎯 Resultado final</h4>
+    <div class="num">${kpiData.elegibles} elegibles</div>
+    <p>Solo el ${kpiData.tasaElegibilidad.toFixed(1)}% de los inscritos ya tienen bono aprobado. El fondo tarda hasta 30 días en resolver.</p>
+  </div>
+  <div class="insight warn">
+    <h4>📞 Contactabilidad</h4>
+    <div class="num">${kpiData.nocontesto} no contestaron</div>
+    <p>Representa el ${(kpiData.nocontesto/TOTAL*100).toFixed(1)}% de la base. Principal causa de pérdida en etapas tempranas.</p>
+  </div>
+`;
+
+/* ============================================================
+   TABLA
+   ============================================================ */
+const tbody = document.getElementById('tbody');
+const searchEl = document.getElementById('search');
+const fMzn = document.getElementById('filterMzn');
+const fEstado = document.getElementById('filterEstado');
+const fAtendio = document.getElementById('filterAtendio');
+const tableCount = document.getElementById('tableCount');
+
+function pillClass(e){
+  const l = e.toLowerCase();
+  if(l.includes("elegible")) return "p-elegible";
+  if(l.includes("inscrito")) return "p-inscrito";
+  if(l.includes("cita agendada")) return "p-cita";
+  if(l.includes("visita realizada")) return "p-visita";
+  if(l.includes("observado")) return "p-observado";
+  if(l.startsWith("no contest")) return "p-nocontesto";
+  if(l.includes("contestó")||l.includes("contesto")) return "p-contesto";
+  if(l.includes("provincia")) return "p-provincia";
+  return "p-otro";
+}
+
+function renderTable(){
+  const q = searchEl.value.trim().toLowerCase();
+  const mz = fMzn.value;
+  const es = fEstado.value;
+  const at = fAtendio.value;
+
+  const filtered = DATA.filter(r=>{
+    if(mz && r.mzn!==mz) return false;
+    if(at && r.atendio!==at) return false;
+    if(es && !hasEstado(r, es)) return false;
+    if(q){
+      const blob = (r.nombre+" "+r.mzn+" "+r.casa).toLowerCase();
+      if(!blob.includes(q)) return false;
+    }
+    return true;
+  });
+
+  tbody.innerHTML = filtered.map(r=>`
+    <tr>
+      <td>${r.n}</td>
+      <td><b>${r.mzn}</b></td>
+      <td>${r.casa}</td>
+      <td>${r.nombre}</td>
+      <td>${r.atendio||'<span style="color:#B0BEC5">—</span>'}</td>
+      <td>${r.firmo||'<span style="color:#B0BEC5">—</span>'}</td>
+      <td>${r.estadosArr.length? r.estadosArr.map(e=>`<span class="pill ${pillClass(e)}">${e}</span>`).join('') : '<span style="color:#B0BEC5">Sin estado</span>'}</td>
+      <td>${r.accion||'<span style="color:#B0BEC5">—</span>'}</td>
+    </tr>
+  `).join('');
+
+  tableCount.textContent = `Mostrando ${filtered.length} de ${TOTAL} registros`;
+}
+
+searchEl.addEventListener('input', renderTable);
+fMzn.addEventListener('change', renderTable);
+fEstado.addEventListener('change', renderTable);
+fAtendio.addEventListener('change', renderTable);
+renderTable();
+</script>
+</body>
+</html>
